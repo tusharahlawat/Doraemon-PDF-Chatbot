@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doraemon PDF Chatbot</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -134,7 +133,9 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 1px 8px 0 rgba(60, 169, 245, 0.13);
-            transition: background 0.18s, transform 0.1s;
+            transition: background-color 0.18s, transform 0.1s;
+
+
         }
         button#send-query:hover {
             background: linear-gradient(135deg, var(--dora-yellow) 40%, var(--dora-blue) 100%);
@@ -424,7 +425,7 @@
                 img.alt = "Doraemon";
                 avatar.appendChild(img);
                 row.appendChild(avatar);
-                messageDiv.innerHTML = marked.parse(text); // Parse markdown for bot messages
+                messageDiv.innerHTML = text;
                 row.appendChild(messageDiv);
             } else {
                 messageDiv.innerHTML = text;
