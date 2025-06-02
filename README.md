@@ -98,7 +98,6 @@ ________________________________________________________________________________
 -   Flask
 -   PyPDF2
 -   ollama
--   python-dotenv (though not explicitly used in the current `app.py` for environment variables, it's good practice for API keys if needed in future)
 
 See `requirements.txt` for specific versions.
 
