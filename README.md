@@ -15,7 +15,7 @@ This project is a Flask-based web application that allows users to upload PDF fi
 ## Project Structure
 
 ```
-.X1/
+Doraemon-PDF-Chatbot/
 ├── app.py # Main Flask application, handles PDF processing and Ollama interaction
 ├── uploads/ # Temporary storage for uploaded PDF files (created automatically)
 ├── processed_texts/ # Storage for extracted text from PDFs (created automatically)
@@ -23,7 +23,7 @@ This project is a Flask-based web application that allows users to upload PDF fi
 │ └── index.html # Frontend HTML, CSS, and JavaScript for the chat interface
 │ └── download.png # Doraemon avatar image
 ├── requirements.txt # Python dependencies
-└── README.md # This file
+└── README.md 
 ```
 
 ## Setup and Installation
