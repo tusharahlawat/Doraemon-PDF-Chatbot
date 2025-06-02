@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doraemon PDF Chatbot</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dora-blue: #3CA9F5;
+            --dora-blue-dark: #2273b6;
+            --dora-light: #E6F4FB;
+            --dora-yellow: #FFD600;
+            --dora-white: #fff;
+            --dora-grey: #F8F9FA;
+            --dora-red: #FF5C5C;
+            --glass-bg: rgba(255,255,255,0.45);
+            --glass-blur: blur(16px);
+            --shadow: 0 8px 32px 0 rgba(60, 169, 245, 0.18);
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #aee8ff 0%, #3CA9F5 100%);
+            color: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            max-width: 410px;
+            width: 96vw;
+            margin: 32px auto;
+            padding: 34px 26px 22px 26px;
+            border: 1.5px solid rgba(60, 169, 245, 0.13);
+            position: relative;
+        }
+        .doraemon-avatar {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff 70%, #3CA9F5 100%);
+            box-shadow: 0 2px 12px 0 rgba(60, 169, 245, 0.13);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 50%;
+            top: -34px;
+            transform: translateX(-50%);
+            border: 3px solid #fff;
+            z-index: 2;
+        }
+        .doraemon-avatar img {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        h1 {
+            color: var(--dora-blue-dark);
+            text-align: center;
+            font-weight: 900;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            font-size: 2.1rem;
+            margin-top: 18px;
+            text-shadow: 0 2px 12px #aee8ff70;
+        }
+        #status-message {
+            text-align: center;
+            margin: 12px 0 0 0;
+            min-height: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            font-size: 1.01rem;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 28px auto 10px auto;
+            background: var(--dora-grey);
+            border: 2px dashed var(--dora-blue);
+            border-radius: 12px;
+            padding: 13px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: border 0.2s;
+            width: 100%;
+            max-width: 300px;
+            outline: none;
+        }
+        input[type="file"]:hover, input[type="file"]:focus {
+            border: 2px solid var(--dora-blue-dark);
+        }
+        button {
+            display: block;
+            margin: 18px auto 0 auto;
+            padding: 13px 0;
+            width: 100%;
+            max-width: 300px;
+            background: linear-gradient(90deg, var(--dora-blue) 70%, var(--dora-yellow) 100%);
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 12px 0 rgba(60, 169, 245, 0.10);
+            transition: background-color 0.2s, transform 0.1s;
+            position: relative;
+            overflow: hidden;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        button#send-query {
+            width: 56px;
+            min-width: 56px;
+            max-width: 56px;
+            padding: 0;
+            margin: 0 0 0 8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--dora-yellow) 60%, var(--dora-blue) 100%);
+            color: var(--dora-blue-dark);
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 8px 0 rgba(60, 169, 245, 0.13);
+            transition: background 0.18s, transform 0.1s;
+        }
+        button#send-query:hover {
+            background: linear-gradient(135deg, var(--dora-yellow) 40%, var(--dora-blue) 100%);
+            transform: scale(1.07);
+        }
+        button#send-query svg {
+            margin-left: 1px;
+            margin-top: 1px;
+            transition: transform 0.15s;
+        }
+        button#send-query.sending svg {
+            transform: translateX(7px) scale(1.25) rotate(-10deg);
+        }
+        #chat-interface {
+            margin-top: 12px;
+            animation: fadeIn 0.7s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px);}
+            to { opacity: 1; transform: none;}
+        }
+        #chat-interface h2 {
+            text-align: center;
+            color: var(--dora-blue-dark);
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 1.13rem;
+            margin-top: 10px;
+        }
+        #chat-interface p {
+            text-align: center;
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 14px;
+            font-size: 0.97rem;
+        }
+        #chatbox {
+            margin: 0 auto 10px auto;
+            border-radius: 18px;
+            box-shadow: 0 1px 8px 0 rgba(60, 169, 245, 0.07);
+            padding: 18px 10px 12px 10px;
+            height: 290px;
+            overflow-y: auto;
+            background: rgba(255,255,255,0.70);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1.5px solid #e6f4fb;
+            position: relative;
+        }
+        .message-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            animation: chatFadeIn 0.6s;
+        }
+        @keyframes chatFadeIn {
+            from { opacity: 0; transform: translateY(24px);}
+            to { opacity: 1; transform: none;}
+        }
+        .message {
+            max-width: 78%;
+            word-break: break-word;
+            padding: 13px 18px;
+            border-radius: 20px;
+            font-size: 1.01rem;
+            margin-bottom: 0;
+            line-height: 1.6;
+            box-shadow: 0 1px 8px 0 rgba(60, 169, 245, 0.07);
+            position: relative;
+            opacity: 0.96;
+            transition: background 0.18s;
+        }
+        .user-message {
+            background: linear-gradient(90deg, var(--dora-blue) 80%, var(--dora-yellow) 100%);
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 8px;
+            border-top-right-radius: 24px;
+            margin-left: auto;
+            box-shadow: 0 2px 8px 0 #3ca9f522;
+        }
+        .bot-message {
+            background: var(--dora-white);
+            color: #222;
+            align-self: flex-start;
+            border-bottom-left-radius: 8px;
+            border-top-left-radius: 24px;
+            border: 1.5px solid var(--dora-light);
+            margin-right: auto;
+            box-shadow: 0 2px 8px 0 #3ca9f522;
+        }
+        .bot-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff 60%, #3CA9F5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 2px;
+            box-shadow: 0 2px 8px 0 #3ca9f522;
+            border: 2px solid #fff;
+        }
+        .bot-avatar img {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff 60%, #FFD600 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 2px;
+            box-shadow: 0 2px 8px 0 #ffd60022;
+            border: 2px solid #fff;
+        }
+        .user-avatar span {
+            font-size: 1.3em;
+        }
+        .chat-input-row {
+            display: flex;
+            margin-top: 12px;
+            gap: 0;
+            align-items: center;
+        }
+        #query-input {
+            flex: 1;
+            padding: 13px 16px;
+            border: 1.5px solid var(--dora-blue);
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            background: var(--dora-white);
+            transition: border 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 6px 0 #3ca9f522;
+        }
+        #query-input:focus {
+            border: 2px solid var(--dora-yellow);
+            box-shadow: 0 2px 12px 0 #ffd60022;
+        }
+        /* Scrollbar styling */
+        #chatbox::-webkit-scrollbar {
+            width: 7px;
+        }
+        #chatbox::-webkit-scrollbar-thumb {
+            background: #b7e2fa;
+            border-radius: 8px;
+        }
+        #chatbox::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px 2vw 12px 2vw;
+                max-width: 99vw;
+                margin: 8vw auto;
+            }
+            #chatbox {
+                height: 44vw;
+                min-height: 170px;
+                padding: 10px 2px 8px 2px;
+            }
+            .message {
+                font-size: 0.97rem;
+                padding: 9px 11px;
+            }
+            .doraemon-avatar {
+                width: 56px;
+                height: 56px;
+                top: -28px;
+            }
+            .doraemon-avatar img {
+                width: 44px;
+                height: 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="doraemon-avatar">
+            <img src="download.png" alt="Doraemon">
+        </div>
+        <h1>Doraemon PDF Chatbot</h1>
+        
+        <input type="file" id="pdf-upload" accept=".pdf">
+        <button id="upload-button">Upload and Process PDF</button>
+        
+        <div id="status-message"></div>
+
+        <div id="chat-interface" style="display: none;">
+            <h2>Hello, Doraemon this side! How may I help you?</h2>
+            <p>You can ask me questions about the PDF you upload.</p>
+            <div id="chatbox">
+                <!-- Chat messages will appear here -->
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="query-input" placeholder="Type your question...">
+                <button id="send-query" title="Send">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <path d="M22 2L11 13"></path>
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pdfUpload = document.getElementById('pdf-upload');
+        const uploadButton = document.getElementById('upload-button');
+        const statusMessage = document.getElementById('status-message');
+        const chatInterface = document.getElementById('chat-interface');
+        const chatbox = document.getElementById('chatbox');
+        const queryInput = document.getElementById('query-input');
+        const sendQueryButton = document.getElementById('send-query');
+        let processedTextFileName = null;
+
+        // Doraemon avatar URL (for chat bubbles)
+        const doraemonAvatarUrl = "https://upload.wikimedia.org/wikipedia/en/0/08/Doraemon_character.png";
+
+        uploadButton.addEventListener('click', async () => {
+            const file = pdfUpload.files[0];
+            if (!file) {
+                statusMessage.textContent = 'Please select a PDF file first.';
+                statusMessage.style.color = 'var(--dora-red)';
+                return;
+            }
+
+            statusMessage.textContent = 'Uploading and processing...';
+            statusMessage.style.color = 'var(--dora-blue)';
+            
+            const formData = new FormData();
+            formData.append('pdf', file);
+
+            try {
+                const response = await fetch('/upload_pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusMessage.textContent = result.message;
+                    statusMessage.style.color = 'green';
+                    processedTextFileName = result.filename; // Store the filename for querying
+                    chatInterface.style.display = 'block';
+                    uploadButton.style.display = 'none';
+                    pdfUpload.style.display = 'none';
+                } else {
+                    statusMessage.textContent = `Error: ${result.error}`;
+                    statusMessage.style.color = 'var(--dora-red)';
+                }
+            } catch (error) {
+                statusMessage.textContent = `Network error: ${error.message}`;
+                statusMessage.style.color = 'var(--dora-red)';
+            }
+        });
+
+        sendQueryButton.addEventListener('click', sendMessage);
+
+        queryInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function addMessageToChatbox(text, className) {
+            const row = document.createElement('div');
+            row.classList.add('message-row');
+            let avatar;
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', className);
+
+            if (className === 'bot-message') {
+                avatar = document.createElement('div');
+                avatar.classList.add('bot-avatar');
+                const img = document.createElement('img');
+                img.src = doraemonAvatarUrl;
+                img.alt = "Doraemon";
+                avatar.appendChild(img);
+                row.appendChild(avatar);
+                messageDiv.innerHTML = marked.parse(text); // Parse markdown for bot messages
+                row.appendChild(messageDiv);
+            } else {
+                messageDiv.innerHTML = text;
+                row.appendChild(messageDiv);
+                avatar = document.createElement('div');
+                avatar.classList.add('user-avatar');
+                avatar.innerHTML = '<span>🧑</span>';
+                row.appendChild(avatar);
+            }
+            chatbox.appendChild(row);
+            chatbox.scrollTop = chatbox.scrollHeight; // Scroll to bottom
+        }
+
+        function setSendButtonLoading(isLoading) {
+            if(isLoading) {
+                sendQueryButton.classList.add('sending');
+                sendQueryButton.disabled = true;
+            } else {
+                sendQueryButton.classList.remove('sending');
+                sendQueryButton.disabled = false;
+            }
+        }
+
+        async function sendMessage() {
+            const query = queryInput.value.trim();
+            if (!query) {
+                queryInput.focus();
+                return;
+            }
+            if (!processedTextFileName) {
+                alert('Please upload and process a PDF first.');
+                return;
+            }
+
+            addMessageToChatbox(query, 'user-message');
+            queryInput.value = '';
+            setSendButtonLoading(true);
+
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: query, filename: processedTextFileName })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    addMessageToChatbox(result.answer, 'bot-message');
+                } else {
+                    addMessageToChatbox(`Error: ${result.error}`, 'bot-message');
+                }
+            } catch (error) {
+                addMessageToChatbox(`Network error: ${error.message}`, 'bot-message');
+            }
+            setSendButtonLoading(false);
+        }
+    </script>
+</body>
+</html>
